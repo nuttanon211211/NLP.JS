@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="utf-8">
+    <title>NLP.JS - Alice in Wonderland</title>
+  <style>
+  body {
+  background-color: white;
+  }
+  p {
+  background-color: #e2efd2;
+  border: 6px solid #e2efd2;
+  border-radius: 3px;
+  }
+  label {
+  color: #0b0e32;
+  background-color: #fefefe;
+  }
+  button[type=button] {
+
+  background-color: aliceblue;
+  color: black;
+  border: 1px solid ;
+  border-radius: 7px;
+  font-weight: normal;
+  padding: 6px 12px;
+
+  text-align: center;
+  display: inline-block;
+  text-decoration: none;
+}
+button[type=button]:hover, button[type=button]:active {
+  background-color: powderblue;
+/*   color:white; */
+}
+input[type=radio] {
+  color: black;
+}
+  </style>
+
+
+  </head>
+  <body>
+    <header></header>
+    <main>
+    <p id="out"><i>gen: </i></p>
+     <label for="length">Length: </label>
+    <input type="range" id="length" name="length" min="10" max="200">
+    <br>
+    <label for="in_text">Input text: </label>
+    <input type="text" id="in_text"></input>
+    <br>
+    <label>Engine:</label>  <div><input type="radio" id="2gram" name="gram"></input>
+    <label for="2gram">2-Gram</label><br>
+    <input type="radio" id="3gram" name="gram"></input>
+    <label for="3gram">3-Gram</label><br>
+    <input type="radio" id="4gram" name="gram"></input>
+    <label for="4gram">4-Gram</label><br></div>
+    <br>
+    <button type="button" onclick="gen()"> Submit </button>
+
+    </main>
+    <footer></footer>
+
+    <script src="data1.js"></script>
+    <script src="data2.js"></script>
+    <script src="data3.js"></script>
+    <script src="data4.js"></script>
+    <script src="function.js"></script>
+  </body>
+</html>
