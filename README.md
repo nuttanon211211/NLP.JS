@@ -8,7 +8,8 @@ Generate text (NLP-task) using N-gram in Javascript.
 Credits: Project Gutenberg</em>
 
 ## Generate Any text with AutoNLP
-Easily do Text-Generation in web, just upload your text file. (The languages must be seperated by space)
+Easily do Text-Generation in web, just upload your text file. (Words in languages must be seperated by space)<br>
+Text files can be found at Project Gutenberg. <a href="https://www.gutenberg.org/">https://www.gutenberg.org/</a>
 
 # Links
 Alice in Wonderland: <a href="https://nuttanon211211.github.io/NLP.JS/alice.html"><b>Here</b></a>
