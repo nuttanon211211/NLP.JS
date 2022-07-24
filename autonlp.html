@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="utf-8">
+    <title>NLP.JS - AutoNLP</title>
+
+    <style>
+    .tooltip {
+  position: absolute;
+/*   display: inline-block; */
+  border-bottom: 1px dotted black;
+  right: 2%;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  position: absolute;
+  color: white;
+  background-color: #555;
+  z-index: 1;
+  border-radius: 6px;
+  padding: 5px 0;
+  width: 240px;
+  top: 0%;
+  right: 5%;
+  margin-left: 0px;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.tooltip .tooltiptext:after {
+  content: "";
+  position: absolute;
+  top: 10%;
+/*   left: 0%; */
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #555 transparent transparent transparent;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+
+.tooltip:active .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+    </style>
+  </head>
+  <body>
+    <input type="file" id="u_file"></input>
+
+    <button type="button" onclick="makeModel()"> Create model </button>
+    <div class="tooltip">help
+    <span class="tooltiptext">How to use:<br>First, Import a text file by click <b>Browse...</b> ,then select you file.
+    <br>Second, Click <b>Create model</b>, wait until model is done(have <i>..-gram done.(using n words)</i>).
+    <br>Third(optional), Adjust the <i>Length</i> bar, Enter <i>Input text</i>,and Select <i>Engine</i>.
+    <br>Fourth, Click <b>Generate</b></span>
+    </div>
+    <br>
+    <p id="output">Output:</p>
+    <br>
+    <label for="length">Length: </label>
+    <input type="range" id="length" name="length" min="10" max="200">
+    <br>
+    <label for="in_text">Input text: </label>
+    <input type="text" id="in_text"></input>
+    <br>
+    <label>Engine:</label>  <div><input type="radio" id="2gram" name="gram"></input>
+    <label for="2gram">2-Gram</label><br>
+    <input type="radio" id="3gram" name="gram"></input>
+    <label for="3gram">3-Gram</label><br>
+    <input type="radio" id="4gram" name="gram"></input>
+    <label for="4gram">4-Gram</label><br></div>
+    <br>
+    <button type="button" onclick="gen()"> Generate </button>
+
+    <script>
+
+
+    let upload = document.getElementById("u_file");
+    let DATA0 = "";
+    let DATA0c = [];
+    let DATA = {};
+
+    upload.addEventListener('change', () => {
+      let fr = new FileReader();
+      fr.readAsText(upload.files[0]);
+
+      fr.onload = function() {
+        DATA0 = fr.result;
+        DATA0c = cleanData(DATA0);
+        document.getElementById('output').innerHTML += " File uploaded";
+
+      };
+
+    });
+
+    function makeModel() {
+      if (typeof Worker == "undefined") {
+        document.getElementById('output').innerHTML = "Output: Creating 1-gram";
+        DATA = create1gram(DATA0c);
+        document.getElementById('output').innerHTML += " 2-gram";
+        DATA2 = create2gram(DATA0c);
+        document.getElementById('output').innerHTML += " 3-gram";
+        DATA3 = create3gram(DATA0c);
+        document.getElementById('output').innerHTML += " 4-gram";
+        DATA4 = create4gram(DATA0c);
+        document.getElementById('output').innerHTML += " done. (using "+String(DATA0c.length )+" words)";
+      }
+      else {
+
+
+        let count = 0;
+        const worker1 = new Worker("./worker.js");
+
+        const worker2 = new Worker("./worker.js");
+        const worker3 = new Worker("./worker.js");
+        const worker4 = new Worker("./worker.js");
+
+
+//         worker1.onmessage = (evt) => {
+//           DATA = evt.data;
+//         };
+        document.getElementById('output').innerHTML = "Output: Creating";
+        worker1.postMessage([1,DATA0c]);
+        worker2.postMessage([2,DATA0c]);
+        worker3.postMessage([3,DATA0c]);
+        worker4.postMessage([4,DATA0c]);
+
+        worker1.onmessage = function(evt) {
+          DATA = evt.data;
+          document.getElementById('output').innerHTML += " 1-gram";
+          count += 1;
+          if (count > 3) {document.getElementById('output').innerHTML += " done. (using "+String(DATA0c.length )+" words)";}
+        };
+        worker2.onmessage = function(evt) {
+          DATA2 = evt.data;
+          document.getElementById('output').innerHTML += " 2-gram";
+          count += 1;
+          if (count > 3) {document.getElementById('output').innerHTML += " done. (using "+String(DATA0c.length )+" words)";}
+        };
+        worker3.onmessage = function(evt) {
+          DATA3 = evt.data;
+          document.getElementById('output').innerHTML += " 3-gram";
+          count += 1;
+          if (count > 3) {document.getElementById('output').innerHTML += " done. (using "+String(DATA0c.length )+" words)";}
+        };
+        worker4.onmessage = function(evt) {
+          DATA4 = evt.data;
+          document.getElementById('output').innerHTML += " 4-gram";
+          count += 1;
+          if (count > 3) {document.getElementById('output').innerHTML += " done. (using "+String(DATA0c.length )+" words)";}
+        };
+
+
+
+
+//         worker1.terminate();
+
+
+      }
+    }
+
+    function cleanData(data) {
+      let data2 = data.replaceAll("\r"," ");
+      let data3 = data2.replaceAll("\n"," ");
+      return cleanText(data3.split(" "));
+
+    }
+
+    function create1gram(data) {
+       let out = {};
+       for (var i=0; i < data.length ; i++) {
+         if (Object.keys(out).indexOf(data[i]) == -1) {
+           out[data[i]] = 1;
+         }
+         else {
+           out[data[i]] += 1;
+         }
+       }
+
+       return out;
+    }
+
+    function create2gram(data) {
+      let out = {};
+      for (var i=1 ; i < data.length ; i++) {
+        if (Object.keys(out).indexOf(data[i-1]) == -1) {
+          var tmp = {};
+          tmp[data[i]] = 1;
+          out[data[i-1]] = tmp;
+
+        }
+        else if (Object.keys(out[data[i-1]]).indexOf(data[i]) == -1) {
+          out[data[i-1]][data[i]] = 1;
+        }
+        else {
+          out[data[i-1]][data[i]] += 1;
+        }
+      }
+
+      return out;
+
+    }
+
+
+    function create3gram(data) {
+      let out = {};
+      for (var i=2 ; i < data.length ; i++) {
+        if (Object.keys(out).indexOf(data[i-2]+" "+data[i-1]) == -1) {
+          var tmp = {};
+          tmp[data[i]] = 1;
+          out[data[i-2]+" "+data[i-1]] = tmp;
+
+        }
+        else if (Object.keys(out[data[i-2]+" "+data[i-1]]).indexOf(data[i]) == -1) {
+          out[data[i-2]+" "+data[i-1]][data[i]] = 1;
+        }
+        else {
+          out[data[i-2]+" "+data[i-1]][data[i]] += 1;
+        }
+      }
+
+      return out;
+
+    }
+
+    function create4gram(data) {
+      let out = {};
+      for (var i=3 ; i < data.length ; i++) {
+        if (Object.keys(out).indexOf(data[i-3]+" "+data[i-2]+" "+data[i-1]) == -1) {
+          var tmp = {};
+          tmp[data[i]] = 1;
+          out[data[i-3]+" "+data[i-2]+" "+data[i-1]] = tmp;
+
+        }
+        else if (Object.keys(out[data[i-3]+" "+data[i-2]+" "+data[i-1]]).indexOf(data[i]) == -1) {
+          out[data[i-3]+" "+data[i-2]+" "+data[i-1]][data[i]] = 1;
+        }
+        else {
+          out[data[i-3]+" "+data[i-2]+" "+data[i-1]][data[i]] += 1;
+        }
+      }
+
+      return out;
+
+    }
+
+
+    // Strip the beginning and the end characters of the string
+    function strip(str) {
+      let out = "";
+      for (var i=1; i < str.length -1 ; i++) {
+        out += str[i];
+      }
+      return out;
+    }
+
+
+    function countString(str) {
+      let count = 0;
+      for (var i=0; i < str.length ; i++) {
+        if (str[i] == "_"){
+          count += 1;
+        }
+      }
+      return count;
+
+    }
+
+    function replaceString(str) {
+      let out = str.replace("_", "<em>");
+      out = out.replace("_","</em>");
+      return out;
+
+    }
+
+
+    function cleanText(data) {
+      let out = [];
+      for (var i = 0 ; i < data.length; i ++) {
+        if (data[i] != "") {
+          if (data[i].endsWith("_") && data[i].startsWith("_")) {
+            out.push("<em>"+strip(data[i])+"</em>");
+          }
+          else if (countString(data[i]) == 2) {
+            out.push( replaceString(data[i]) );
+          }
+          else {
+            out.push(data[i]);
+          }
+        }
+
+      }
+      return out;
+
+    }
+
+
+// Generate next word using 2 gram
+function gen2(prefix,gram_data1,gram_data2) {
+
+    if (Object.keys(gram_data2).indexOf(prefix) == -1) {
+        console.log(Object.keys(gram_data1));
+        console.log(Object.values(gram_data1));
+        //Object.keys(gram_data1), Object.values(gram_data1);
+
+        return weightRandom(Object.keys(gram_data1), Object.values(gram_data1));
+
+    }
+    let out = gram_data2[prefix];
+    return weightRandom(Object.keys(out), Object.values(out));
+}
+
+// Generate next word using 3 gram
+function gen3(prefix, gram_data3) {
+    if (Object.keys(gram_data3).indexOf(prefix) == -1) {
+
+        return "<NO_DATA>";
+    }
+
+    let out = gram_data3[prefix];
+    return weightRandom(Object.keys(out), Object.values(out));
+}
+
+// Generate next word using 4 gram
+function gen4(prefix, gram_data4) {
+    if (Object.keys(gram_data4).indexOf(prefix) == -1) {
+        return "<NO_DATA>";
+    }
+
+    let out = gram_data4[prefix];
+    return weightRandom(Object.keys(out), Object.values(out));
+}
+
+// Generate next N-words (num-seq) using 2 gram
+function gen2gen(prefix0,num_seq,gram_data1,gram_data2) {
+    let text = prefix0.split(" ");
+    prefix =text[text.length - 1];
+    let gen = [];
+
+    for (var i=0 ; i<num_seq ; i++) {
+        prefix = gen2(prefix, gram_data1, gram_data2);
+        gen.push(prefix);
+    }
+//     gen = cleanData(gen);
+    return prefix0 + " " + gen.join(" ");
+
+}
+
+// Generate next N-words (num-seq) using 3 gram
+function gen3gen(prefix0, num_seq, gram_data1, gram_data2, gram_data3 ) {
+    let text = prefix0.split(" ");
+    console.log(text);
+    let prefix = String(text[text.length -1]);
+    let prefix2 = String(text[text.length -2]);
+    let stack = [prefix2 , prefix];
+
+    let gen = [];
+    let gen_w = "";
+    let key= "";
+    let gen_w2 = "";
+
+    for (var i=0 ; i<num_seq ; i++) {
+        key = String(stack[stack.length-2])+" "+String(stack[stack.length-1]);
+        console.log(key);
+        gen_w = gen3(key, gram_data3);
+
+        //console.log(prefix2,prefix,gen_w);
+        if (gen_w == "<NO_DATA>" ) {
+            gen_w2 = String( gen2(String(stack[stack.length-1]), gram_data1, gram_data2) );
+            gen.push(gen_w2);
+            console.log("fb 2g",String(gen_w2));
+            stack.push(gen_w2);
+
+        }
+        else {
+            console.log("using 3g")
+            gen.push(gen_w);
+            stack.push(gen_w);
+
+        }
+
+
+    }
+    console.log(stack);
+//     gen = cleanData(gen);
+    return prefix0 + " " + gen.join(" ");
+}
+
+
+// Generate next N-words (num-seq) using 4 gram
+function gen4gen(prefix0, num_seq, gram_data1, gram_data2, gram_data3, gram_data4) {
+    let text = prefix0.split(" ");
+    console.log(text);
+    let prefix = String(text[text.length -1]);
+    let prefix2 = String(text[text.length -2]);
+    let prefix3 = String(text[text.length -3]);
+    let stack = [prefix3, prefix2 , prefix];
+
+    let gen = [];
+    let gen_w = "";
+    let key= "";
+    let gen_w2 = "";
+    let gen_w3 = "";
+    for (var i=0 ; i<num_seq ; i++) {
+
+
+        key = String(stack[stack.length -3])+" "+ String(stack[stack.length-2])+" "+String(stack[stack.length-1]);
+        console.log(key);
+        gen_w = gen4(key, gram_data4);
+
+        //console.log(prefix2,prefix,gen_w);
+        if (gen_w == "<NO_DATA>" ) {
+            gen_w3 = gen3(String(stack[stack.length-2])+" "+String(stack[stack.length-1]), gram_data3);
+            if (gen_w3 != "<NO_DATA>") {
+              gen.push(gen_w3);
+              console.log("fb 3g",String(gen_w3));
+              stack.push(gen_w3);
+
+            }
+            else {
+              gen_w2 = String( gen2(String(stack[stack.length-1]), gram_data1, gram_data2) );
+              gen.push(gen_w2);
+              console.log("fb 2g",String(gen_w2));
+              stack.push(gen_w2);
+            }
+
+        }
+        else {
+            console.log("using 4g")
+            gen.push(gen_w);
+            stack.push(gen_w);
+
+        }
+
+
+    }
+    console.log(stack);
+//     gen = cleanData(gen);
+    return prefix0 + " " + gen.join(" ");
+}
+
+// Handle generation button
+function gen() {
+    let prefix = document.getElementById('in_text').value;
+    let len = document.getElementById('length').value ;
+    if (document.getElementById('2gram').checked) {
+    document.getElementById('output').innerHTML = "<i>Output: </i><br>" + gen2gen(prefix, Number(len), DATA, DATA2);
+    }
+    else if (document.getElementById('3gram').checked ) {
+    document.getElementById('output').innerHTML = "<i>Output: </i><br>" + gen3gen(prefix, Number(len), DATA, DATA2, DATA3);
+    }
+    else if (document.getElementById('4gram').checked) {
+    document.getElementById('output').innerHTML = "<i>Output: </i><br>" + gen4gen(prefix, Number(len), DATA, DATA2, DATA3, DATA4);
+    }
+    else {
+    document.getElementById('output').innerHTML = "<i>Output</i>(default 3-Gram): <br>" + gen3gen(prefix, Number(len), DATA, DATA2, DATA3);
+    }
+}
+
+// Randomly select the element in the list by weight
+function weightRandom(list, w) {
+    let sum = 0.0;
+    for (var i = 0 ; i < w.length; i ++) {
+        sum += w[i];
+    }
+
+    console.log(sum);
+
+    let cumsum = [];
+    let c_sum = 0.0;
+
+    for (var i = 0 ; i < w.length; i ++) {
+        c_sum += w[i];
+        cumsum.push(c_sum/sum);
+    }
+    console.log(cumsum);
+
+    let r_number = Math.random();
+
+    console.log(r_number);
+
+    for (var i = 0 ; i < w.length; i ++) {
+        if (r_number < cumsum[i]) {
+            return list[i]
+        }
+    }
+
+    return "<NO_DATA>";
+}
+
+
+
+
+    </script>
+  </body>
+</html>
