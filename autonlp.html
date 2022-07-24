@@ -80,13 +80,18 @@
     <button type="button" onclick="gen()"> Generate </button>
 
     <script>
+// Start the script
 
-
+// initialize variables
     let upload = document.getElementById("u_file");
     let DATA0 = "";
     let DATA0c = [];
     let DATA = {};
+    let DATA2 = {};
+    let DATA3 = {};
+    let DATA4 = {};
 
+// Event listener when upload file
     upload.addEventListener('change', () => {
       let fr = new FileReader();
       fr.readAsText(upload.files[0]);
@@ -100,7 +105,9 @@
 
     });
 
+// Function to Crate model when user click the button
     function makeModel() {
+//     Check for worker compatibility
       if (typeof Worker == "undefined") {
         document.getElementById('output').innerHTML = "Output: Creating 1-gram";
         DATA = create1gram(DATA0c);
@@ -114,7 +121,7 @@
       }
       else {
 
-
+// Spawn workers
         let count = 0;
         const worker1 = new Worker("./worker.js");
 
@@ -126,12 +133,15 @@
 //         worker1.onmessage = (evt) => {
 //           DATA = evt.data;
 //         };
+
+// Sends message to workers
         document.getElementById('output').innerHTML = "Output: Creating";
         worker1.postMessage([1,DATA0c]);
         worker2.postMessage([2,DATA0c]);
         worker3.postMessage([3,DATA0c]);
         worker4.postMessage([4,DATA0c]);
 
+// Get messages from workers and update DOM
         worker1.onmessage = function(evt) {
           DATA = evt.data;
           document.getElementById('output').innerHTML += " 1-gram";
@@ -166,6 +176,7 @@
       }
     }
 
+//     Convert plain text to an array of words
     function cleanData(data) {
       let data2 = data.replaceAll("\r"," ");
       let data3 = data2.replaceAll("\n"," ");
@@ -173,6 +184,7 @@
 
     }
 
+// Create 1-gram using words array
     function create1gram(data) {
        let out = {};
        for (var i=0; i < data.length ; i++) {
@@ -187,6 +199,7 @@
        return out;
     }
 
+//     Create 2-gram using word array
     function create2gram(data) {
       let out = {};
       for (var i=1 ; i < data.length ; i++) {
@@ -209,6 +222,7 @@
     }
 
 
+// Create 3-gram using words array
     function create3gram(data) {
       let out = {};
       for (var i=2 ; i < data.length ; i++) {
@@ -230,6 +244,7 @@
 
     }
 
+// Create 4-gram using words array
     function create4gram(data) {
       let out = {};
       for (var i=3 ; i < data.length ; i++) {
@@ -252,7 +267,7 @@
     }
 
 
-    // Strip the beginning and the end characters of the string
+// Strip the beginning and the end characters of the string
     function strip(str) {
       let out = "";
       for (var i=1; i < str.length -1 ; i++) {
@@ -262,6 +277,7 @@
     }
 
 
+// Count the number of "_" in a String
     function countString(str) {
       let count = 0;
       for (var i=0; i < str.length ; i++) {
@@ -273,6 +289,7 @@
 
     }
 
+// Replace first and second "_" in a String with <em> and </em>
     function replaceString(str) {
       let out = str.replace("_", "<em>");
       out = out.replace("_","</em>");
@@ -280,7 +297,7 @@
 
     }
 
-
+// Create a new array of words that is clean and not empty
     function cleanText(data) {
       let out = [];
       for (var i = 0 ; i < data.length; i ++) {

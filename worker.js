@@ -1,6 +1,5 @@
 
-
-
+// Create 1-gram using words array
 function create1gram(data) {
        let out = {};
        for (var i=0; i < data.length ; i++) {
@@ -15,6 +14,7 @@ function create1gram(data) {
        return out;
 }
 
+// Create 2-gram using words array
 function create2gram(data) {
       let out = {};
       for (var i=1 ; i < data.length ; i++) {
@@ -36,7 +36,7 @@ function create2gram(data) {
 
     }
 
-
+// Create 3-gram using words array
 function create3gram(data) {
       let out = {};
       for (var i=2 ; i < data.length ; i++) {
@@ -58,6 +58,7 @@ function create3gram(data) {
 
     }
 
+// Create 4-gram using words array
 function create4gram(data) {
       let out = {};
       for (var i=3 ; i < data.length ; i++) {
@@ -79,7 +80,7 @@ function create4gram(data) {
 
     }
 
-
+// Handle when recieve the message (Create n-gram)
 self.onmessage = function(evt) {
     let d_out = {};
 //     console.log(evt);
